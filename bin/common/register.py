@@ -53,8 +53,14 @@ class Register:
 
     @staticmethod
     def update_service_type(dbid):
-        db = pymysql.Connection(config.db_ip, config.db_user, config.db_password, port=config.db_port)
-        sql = 'UPDATE platform.`t_service_instance` SET fserviceTypeId={0}, fisPaid=1, ftotalUserNum=100000 WHERE fid={1}'.format(config.service_type, dbid)
+        db = pymysql.connect(host=config.db_ip,
+                             user=config.db_user,
+                             password=config.db_password,
+                             port=config.db_port,
+                             )
+        sql = 'UPDATE platform.`t_service_instance` ' \
+              'SET fserviceTypeId={0}, fisPaid=1, ftotalUserNum=100000 ' \
+              'WHERE fid={1}'.format(config.service_type, dbid)
 
         cursor = db.cursor()
         try:
@@ -86,6 +92,6 @@ class Register:
             return result[0]
 
 if __name__ == '__main__':
-    new_mobile = '11299996613'
+    new_mobile = '13299996302'
     r = Register(new_mobile)
     r.add_corp()

@@ -7,9 +7,10 @@ from random import randrange
 from bin import config
 from bin.common.common import Login
 
+
 def set_self_brands():
     brands = []
-    for i in  range(randrange(config.goods_brand_lower_limit, config.goods_brand_upper_limit)):
+    for i in range(randrange(config.goods_brand_lower_limit, config.goods_brand_upper_limit)):
         brands.append("brand_" + str(i))
     return brands
 
@@ -18,7 +19,7 @@ self_brands = set_self_brands()
 
 def set_self_categories():
     categories = []
-    for i in range(randrange(config.goods_category_lower_limit,config.goods_category_upper_limit)):
+    for i in range(randrange(config.goods_category_lower_limit, config.goods_category_upper_limit)):
         categories.append("category_" + str(i))
     return categories
 
@@ -55,7 +56,7 @@ class Brand:
                 self.add_brand(brand)
 
 
-class Categories:
+class Category:
 
     def __init__(self, ydh):
         self.s = ydh.get_session()
@@ -94,7 +95,7 @@ class Goods:
         self.dbid = ydh.get_dbid()
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.data_path = path + '/../data/goods/'
-        self.goods_xlsx = self.data_path + self.dbid() + 'goods'
+        self.goods_xlsx = self.data_path + self.dbid + 'goods'
         self.goods_template = path + u'/../templates/商品基础信息导入模板.xlsx'
         self.limit = 2000
 
@@ -128,15 +129,96 @@ class Goods:
             new_goods_data.update({'商品数据': goods_columns})
             save_data(filename, new_goods_data)
 
+    def generate_xlsx(self):
+        row_num = 21
+        if self.get_goods_files() * self.limit > config.goods_lower_limit:
+            logging.warning("no need to generate goods")
+            return
+        count = randrange(config.goods_lower_limit, config.goods_upper_limit)
+        logging.warning('goods number: {0}'.format(count))
+        file_counts = int(count / self.limit)
+        remainder_count = int(count % self.limit)
 
+        for file_count in range(file_counts):
+            filename = self.goods_xlsx + '_' + str(file_count) + '.xlsx'
+            goods_name = 'xxP' + self.dbid + str(file_count)
+            self.__generate(self.limit, row_num, filename, goods_name)
 
+        if remainder_count:
+            filename = self.goods_xlsx + '_remainder.xlsx'
+            goods_name = 'xxP' + self.dbid + '999'
+            self.__generate(remainder_count, row_num, filename, goods_name)
 
+    def _upload(self, url, filename):
+        fp = open(filename, 'rb')
+        files = {'file': (filename.split('/')[-1], fp, 'application/vnd.ms-excel')}
+        r = self.s.post(url, headers=self.headers, files=files)
+        fp.close()
+        res = r.json()
+        if res['code'] == 200:
+            return res['data']['upload_file_name']
+        else:
+            logging.error('upload goods xlsx {0} failed'.format(filename))
+            logging.error(r.text)
+
+    def upload_xlsx(self, filename):
+        url = 'https://file.dinghuo123.com/corp/productImport/previewTemplate?file_token={0}'.format(self.get_file_token())
+        self.s.options(url)
+        self._upload(url, filename)
+
+    def import_goods(self):
+        url = 'https://file.dinghuo123.com/corp/productImport/previewTemplate?file_token={0}'.format(self.get_file_token())
+        self.s.options(url)
+
+        for file in self.get_goods_files():
+            upload_file_name = self.upload_xlsx(file)
+            if upload_file_name is None:
+                continue
+            data = {'upload_file_name': upload_file_name, 'templateType': 'default'}
+            r = self.s.post(url, headers=self.headers, data=data)
+            res = r.json()
+            if res['code'] == 200 and res['message'].startswith('操作成功'):
+                logging.warning('upload goods file: {0}'.format(file))
+            else:
+                logging.error('import goods file {0} failed'.format(upload_file_name))
+                logging.error(r.text)
+
+    def get_goods_total_count(self):
+        url = 'https://corp.dinghuo123.com/v2/goods/list?currentPage=1&pageSize=30&loadPrice=false'
+        r = self.s.get(url, headers=self.headers)
+        return int(r.json()['data']['totalCount'])
+
+    def init_goods(self):
+        if self.get_goods_total_count() > config.goods_lower_limit:
+            logging.warning('no need to init goods')
+            return
+        else:
+            self.generate_xlsx()
+            self.import_goods()
+
+    def get_goods(self, goods_status=0, count=1000, page=1):
+        url = 'https://corp.dinghuo123.com/v2/goods/list?status={0}&currentPage={1}&pageSize={2}&loadPrice=false'.format(goods_status, page, count)
+        r = self.s.get(url, headers=self.headers)
+        return r.json()['data']['items']
+
+    def export_goods(self):
+        url = 'https://file.dinghuo123.com/corp/productImport/exportProduct?operation=search&&file_token={0}'.format(self.get_file_token())
+        r = self.s.post(url, headers=self.headers)
+        if r.json()['code'] == 200:
+            pass
+        else:
+            logging.error('export goods failed')
+            logging.error(r.text)
 
 
 if __name__ == '__main__':
     ydh = Login()
-    ydh.login('11299996612', '123456')
+    ydh.login('11299996615', '123456')
     brand = Brand(ydh)
     brand.init_brands()
-    category = Categories(ydh)
+    category = Category(ydh)
+    print(category.get_categories_count())
     category.init_categories()
+    goods = Goods(ydh)
+    item = goods.get_goods()
+    print(item)

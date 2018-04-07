@@ -112,7 +112,7 @@ class Department:
                 self.add_departments(self_department)
 
 
-class Customer:
+class Customers:
 
     def __init__(self, ydh):
         self.ydh = ydh
@@ -134,7 +134,8 @@ class Customer:
         customer_columns = customer_data['客户数据']
         for i in range(limit):
             customer_data = ['' for j in range(row_num)]
-            customer_data[2] = self_address[randrange(0, len(self_address))]
+            customer_data[0] = customer_name + str(i)     # 客户名称
+            customer_data[2] = self_address[randrange(0, len(self_address))]  #
             customer_data[3] = self_levels[randrange(0, len(self_levels))][0]
             customer_data[9] = self_departments[randrange(0, len(self_departments))]
             customer_data[14] = customer_name + str(i)
@@ -179,7 +180,7 @@ class Customer:
         r = self.s.get(url, headers=self.headers)
         return int(r.json()['data']['totalCount'])
 
-    def get_customer(self, customer_status=0, page_size=10):
+    def get_customers(self, customer_status=0, page_size=10):
         url = 'https://corp.dinghuo123.com/v2/customer/list?customerStatus={0}&currentPage=1&pageSize={1}'.format(customer_status, page_size)
         r = self.s.get(url, headers=self.headers)
         return r.json()['data']['items']
@@ -235,12 +236,12 @@ class Customer:
 
 if __name__ == '__main__':
     ydh = Login()
-    ydh.login('11299996612', '123456')
+    ydh.login('334488096', '123456')
     department = Department(ydh)
     department.init_departments()
     level = Level(ydh)
     level.init_levels()
-    customer = Customer(ydh)
+    customer = Customers(ydh)
     customer.init_customers()
 
     now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -249,7 +250,7 @@ if __name__ == '__main__':
         f.write('customer_id customer_name customer_level_id')
         f.write('\n')
 
-    for customer in customer.get_customer(page_size=200):
+    for customer in customer.get_customers(page_size=200):
         customer_id = customer['id']
         customer_name = customer['name']
         customer_level_id = customer['customerTypeId']

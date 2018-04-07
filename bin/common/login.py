@@ -75,7 +75,7 @@ class Login:
 
 if __name__ == '__main__':
     ydh = Login()
-    ydh.login('18681558460', '111111')    # 只能是绑定一个账号的手机号,不能开代理
+    ydh.login('334488096', '111111')    # 只能是绑定一个账号的手机号,不能开代理
     print(ydh.get_cookies())
     print(ydh.get_dbid())
     print(ydh.get_username())
