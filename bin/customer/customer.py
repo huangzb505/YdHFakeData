@@ -236,24 +236,24 @@ class Customers:
 
 if __name__ == '__main__':
     ydh = Login()
-    ydh.login('334488096', '123456')
+    ydh.login('334488096', '111111')
     department = Department(ydh)
     department.init_departments()
-    level = Level(ydh)
-    level.init_levels()
-    customer = Customers(ydh)
-    customer.init_customers()
-
-    now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    fake_file = '../../data/temp/fake_customer_' + now + '.txt'
-    with open(fake_file, 'wb') as f:
-        f.write('customer_id customer_name customer_level_id')
-        f.write('\n')
-
-    for customer in customer.get_customers(page_size=200):
-        customer_id = customer['id']
-        customer_name = customer['name']
-        customer_level_id = customer['customerTypeId']
-        with open(fake_file, 'ab') as f:
-            f.write(str(customer_id) + '' + str(customer_name) + '' + str(customer_level_id))
-            f.write('\n')
+    # level = Level(ydh)
+    # level.init_levels()
+    # customer = Customers(ydh)
+    # customer.init_customers()
+    #
+    # now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    # fake_file = '../../data/temp/fake_customer_' + now + '.txt'
+    # with open(fake_file, 'wb') as f:
+    #     f.write('customer_id customer_name customer_level_id')
+    #     f.write('\n')
+    #
+    # for customer in customer.get_customers(page_size=200):
+    #     customer_id = customer['id']
+    #     customer_name = customer['name']
+    #     customer_level_id = customer['customerTypeId']
+    #     with open(fake_file, 'ab') as f:
+    #         f.write(str(customer_id) + '' + str(customer_name) + '' + str(customer_level_id))
+    #         f.write('\n')

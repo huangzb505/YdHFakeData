@@ -86,7 +86,7 @@ class Orders:
             return False
 
     def __generate(self, limit, row_num, filename, order_num, file_count):
-            order_data = get_data(self.data_path)
+            order_data = get_data(self.order_template)
             order_columns = order_data['订单归集']
             for order_num_count in range(limit):
                 good_subscript = randrange(0, len(self.goods_data) - self.goods_in_order_num)
@@ -107,7 +107,7 @@ class Orders:
                     order_columns.append(column_data)
 
             new_order_data = OrderedDict()
-            new_order_data.update('订单归集', order_columns)
+            new_order_data.update({'订单归集': order_columns})
             save_data(filename, new_order_data)
 
     def generate_xlsx(self):
@@ -115,15 +115,15 @@ class Orders:
             logging.warning('no need to generate order xlsx')
             return
         count = randrange(config.order_lower_limit, config.order_upper_limit)
-        limit = (count / self.file_num)
+        limit = int(count / self.file_num)
         logging.warning('orders number:{0}'.format(count))
 
         row_num = 20
 
-        for file_count in self.file_num:
+        for file_count in range(self.file_num):
             filename = self.order_xlsx + '_' + str(file_count) + '.xlsx'
-            order_num = 'xx0' +  self.dbid + str(file_count)
-            self.__generate(limit, filename, row_num, order_num, file_count)
+            order_num = 'xx0' + self.dbid + str(file_count)
+            self.__generate(limit, row_num, filename, order_num, file_count)
 
     def _upload(self, url, filename):
         fp = open(filename, 'rb')
@@ -219,7 +219,7 @@ class Orders:
 
 if __name__ == '__main__':
     ydh = Login()
-    ydh.login('11299996612', '123456')
+    ydh.login('334488096', '111111')
 
     orders = Orders(ydh)
     orders.init_orders()

@@ -38,22 +38,24 @@ class Login:
                 'username': username, 'password': password,
                 'verifyCode': '', 'lt': lt, 'service': ''}
         r = s.post(url, data=data, allow_redirects=True)
-        if r.request.url == 'https://sso.dinghuo123.com/accountList?client=web':   # 多打一个斜杠/  ：'https://sso.dinghuo123.com//accountList?client=web':
+
+        if r.request.url == 'https://sso.dinghuo123.com/accountList?client=web':
             user_account_name = r.text.split('<a class="ui-btn ui-btn-theme btn-bindOk" href="/accountList?action=entry&userAccountName=')[-1].split('&serviceName=ydh-web')[0]
             r = s.get('https://sso.dinghuo123.com/accountList?action=entry&userAccountName=%s&serviceName=ydh-web' % user_account_name)
 
         cookies = {}
         for item in r.request.headers['cookie'].split(';'):
-            if item.find('ydhSession') != -1:
-                cookies.update({'ydhSession': item.split('=')[1].strip()})
+            if item.find('jwt') != -1:
+                cookies.update({'jwt': item.split('=')[1].strip()})
             if item.find('JSESSIONID') != -1:
                 cookies.update({'JSESSIONID': item.split('=')[1].strip()})
-        if cookies.get('ydhSession') or cookies.get('JSESSIONID'):
+        if cookies.get('jwt') or cookies.get('JSESSIONID'):
             self.mobile = username
             self.cookies = cookies
             self.login_succeed = True
         else:
-            print("logging error")
+            print('[ERROR Login] login failed')
+
         if r.text.find('dbid') != -1:
             self.dbid = r.text.split("dbid':'")[1].split("',")[0]
         else:
