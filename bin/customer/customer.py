@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 import datetime
 from random import randrange
 from bin import config
@@ -110,6 +111,38 @@ class Department:
         else:
             for self_department in self_departments:
                 self.add_departments(self_department)
+
+
+class Staff:
+
+    def __init__(self, ydh):
+        self.s = ydh.get_session()
+        self.headers = {'X-Requested-With': 'XMLHttpRequest'}
+
+    def add_staffs(self, limit):
+        url = 'https://corp.dinghuo123.com/v2/companyUser/add'
+        staff_name = 'staff_1'
+        staff_account = 'ie33330000'
+        for i in range(limit):
+            data = {'userName': staff_account + str(i),
+                      'password': '111111',
+                      'confirmpwd': '111111',
+                      'realName': staff_name + str(i),
+                      'mobile': 13800038000,
+                      'companyDepartmentName': 2080952,
+                      'isCareArea': 0,
+                      'roles': [3],
+                      'customRegionSwitch': 2,
+                      'areasArray': '',
+                      'companyDepartmentId': 2080952,
+                      'customRegionEntries': ["0"]}
+
+            r = self.s.post(url, headers=self.headers, data=data)
+            resp = r.json()
+            if resp['code'] == 200 and resp['message'].startswith('操作成功'):
+                print("add success")
+            else:
+                logging.error(r.text)
 
 
 class Customers:
@@ -236,9 +269,11 @@ class Customers:
 
 if __name__ == '__main__':
     ydh = Login()
-    ydh.login('334488096', '111111')
-    department = Department(ydh)
-    department.init_departments()
+    ydh.login('15815568853', '123456')
+    staff = Staff(ydh)
+    staff.add_staffs(3)
+    # department = Department(ydh)
+    # department.init_departments()
     # level = Level(ydh)
     # level.init_levels()
     # customer = Customers(ydh)
